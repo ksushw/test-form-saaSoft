@@ -1,75 +1,59 @@
-# Nuxt Minimal Starter
+# Управление учетными записями (Vue 3 + Nuxt 3 + Pinia + Naive UI)
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## 📌 Описание проекта
+Приложение для управления учетными записями с возможностью добавления, редактирования и удаления записей. Данные сохраняются в `Pinia` и автоматически синхронизируются с `localStorage`.
 
-## Setup
+## 🚀 Стек технологий
+- **Vue 3** (Composition API)
+- **Nuxt 3** (для SSR и удобной структуры проекта)
+- **TypeScript** (для типизации)
+- **Pinia** (стейт-менеджер)
+- **Naive UI** (UI-компоненты)
+- **Floating Vue** (подсказки и тултипы)
+- **Motion One** (анимации)
 
-Make sure to install dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+## 📂 Структура проекта
+```
+📁 src
+ ├── 📁 components        # Компоненты формы, таблицы и UI-элементы
+ ├── 📁 pages             # Страницы (главная страница - index.vue)
+ ├── 📁 store             # Pinia-хранилище
+ ├── 📁 plugins           # Подключение Naive UI, Floating Vue и Motion One
+ ├── 📁 assets            # Стили, иконки и изображения
+ ├── nuxt.config.ts       # Конфигурация Nuxt
+ ├── tsconfig.json        # Конфигурация TypeScript
+ ├── package.json         # Зависимости проекта
 ```
 
-## Development Server
+## 🔧 Установка и запуск проекта
 
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+### 1️⃣ Установить зависимости
+```sh
+npm install  # или yarn install
 ```
 
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+### 2️⃣ Запустить локальный сервер
+```sh
+npm run dev  # или yarn dev
 ```
 
-Locally preview production build:
+### 3️⃣ Открыть в браузере
+Перейти в **[http://localhost:3000/](http://localhost:3000/)**
 
-```bash
-# npm
-npm run preview
+## 🎨 Функционал
+✅ Добавление новой учетной записи
+✅ Валидация обязательных полей (логин, пароль для локальной записи)
+✅ Автосохранение в `localStorage`
+✅ Подсказки и тултипы при ошибках
+✅ Анимация добавления/удаления записей
 
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+## 🔗 Полезные команды
+```sh
+npm run build       # Сборка проекта
+npm run generate    # Генерация статического билда
+npm run lint        # Проверка кода на ошибки
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## 📜 Лицензия
+MIT License
+
