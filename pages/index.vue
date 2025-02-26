@@ -1,6 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, h, nextTick } from 'vue';
-import { useAccountsStore } from '@/store/accounts';
+import { ref, onMounted, nextTick, h } from 'vue'
+import { useForm, ErrorMessage } from 'vee-validate'
+import * as yup from 'yup'
+import { useAccountsStore } from '@/store/accounts'
+import { useNuxtApp } from '#app'
 import {
   NButton,
   NCard,
@@ -10,44 +13,136 @@ import {
   NDataTable,
   NSelect,
   NFormItem
-} from 'naive-ui';
-import { useNuxtApp } from '#app';
-import { Add, HelpCircleOutline, TrashBinOutline } from '@vicons/ionicons5';
-import * as Yup from 'yup';
-import { ErrorMessage, Field, Form } from 'vee-validate';
+} from 'naive-ui'
+import { Add, HelpCircleOutline, TrashBinOutline } from '@vicons/ionicons5'
 
-const store = ref();
-const dataTableRef = ref(null); // Реф для n-data-table
-const { $animate } = useNuxtApp();
-
+// Получаем $animate из NuxtApp
+const { $animate } = useNuxtApp()
+const errorInputList = ref()
+// Возможные типы аккаунтов
 const types = [
   { label: 'LDAP', value: 'LDAP' },
-  { label: 'Локальная', value: 'Local' },
-];
+  { label: 'Локальная', value: 'Local' }
+]
 
-const accountSchema = Yup.object({
-  label: Yup.string().max(50, 'Максимум 50 символов'),
-  type: Yup.string()
+const adError = (error) => {
+  errorInputList.value([
+    ...errorInputList.value,
+     error
+  ])
+}
+
+// Схема валидации для одного аккаунта
+const accountSchema = yup.object({
+  label: yup.string().max(50, 'Максимум 50 символов'),
+  type: yup
+    .string()
     .oneOf(['LDAP', 'Local'], 'Выберите допустимое значение')
     .required('Тип записи обязателен'),
-  login: Yup.string()
+  login: yup.string().max(100, 'Максимум 100 символов').required('Логин обязателен'),
+  password: yup
+    .string()
+    .transform((value, originalValue) => (originalValue === '' ? undefined : value))
     .max(100, 'Максимум 100 символов')
-    .required('Логин обязателен'),
-    password: Yup.string()
-  .transform((value, originalValue) => originalValue === '' ? undefined : value)
-  .max(100, 'Максимум 100 символов')
-  .when('type', {
-    is: 'Local',
-    then: schema => schema.required('Пароль обязателен'),
-    otherwise: schema => schema.nullable()
+    .when('type', {
+      is: 'Local',
+      then: schema => schema.required('Пароль обязателен'),
+      otherwise: schema => schema.nullable()
+    })
+})
+
+// Общая схема для формы с массивом аккаунтов
+const validationSchema = yup.object({
+  accounts: yup.array().of(accountSchema)
+})
+
+const { values, errors, handleSubmit, setValues, setFieldValue } = useForm({
+  validationSchema,
+  initialValues: { accounts: [] },
+  validateOnChange: true
+})
+
+const store = ref()
+const dataTableRef = ref(null)
+
+onMounted(async () => {
+  store.value = useAccountsStore()
+  setValues({ accounts: store.value.accounts })
+  await nextTick()
+  animateRowsSequentially()
+})
+
+
+
+// Функция анимации строк таблицы
+const animateRowsSequentially = () => {
+  const rows = dataTableRef.value?.$el.querySelectorAll('tbody tr')
+  if (rows) {
+    rows.forEach((row, index) => {
+      $animate(
+        row,
+        {
+          opacity: [0, 1],
+          transform: ['translateX(-30px)', 'translateX(0)']
+        },
+        { duration: 0.3, delay: index * 0.2 }
+      )
+    })
+  }
+}
+
+// Функция добавления аккаунта
+const addAccount = () => {
+  store.value.addAccount()
+  setValues({ accounts: store.value.accounts })
+  setTimeout(() => {
+    const rows = dataTableRef.value?.$el.querySelectorAll('tbody tr')
+    if (rows && rows.length) {
+      $animate(
+        rows[rows.length - 1],
+        {
+          opacity: [0, 1],
+          transform: ['translateX(-30px)', 'translateX(0)']
+        },
+        { duration: 0.3 }
+      )
+    }
+  }, 10)
+}
+
+// Функция удаления аккаунта с анимацией
+const removeAccount = (index, id) => {
+  const rowToRemove = dataTableRef.value?.$el.querySelector(
+    `tbody tr:nth-of-type(${index + 1})`
+  )
+  if (!rowToRemove) {
+    store.value.removeAccount(index)
+    setValues({ accounts: store.value.accounts })
+    return
+  }
+  $animate(
+    rowToRemove,
+    { opacity: [1, 0], transform: ['translateX(0)', 'translateX(-50%)'] },
+    { duration: 0.3 }
+  ).then(() => {
+    store.value.removeAccount(index)
+    setValues({ accounts: store.value.accounts })
+    $animate(
+      rowToRemove,
+      { opacity: [0, 1], transform: ['translateX(-50%)', 'translateX(0)'] },
+      { duration: 0 }
+    )
   })
+}
+
+// Обработчик отправки формы
+const onSubmit = handleSubmit((formValues) => {
+  console.log('Submitted values:', formValues)
 })
 
-const schema = Yup.object({
-  accounts: Yup.array().of(accountSchema)
-})
-
-
+// Определяем колонки для n-data-table с использованием render-функций.
+// Для каждого поля обновление значения происходит через onUpdateValue с вызовом setFieldValue,
+// а вывод ошибок организован через компонент <ErrorMessage>.
 const columns = [
   {
     title: 'Метка',
@@ -59,16 +154,16 @@ const columns = [
         [
           h(
             NFormItem,
-            {  path: `accounts.${index}.label` },
+            { path: `accounts.${index}.label` },
             {
               default: () =>
-                h(Field, {
-                  name: `accounts.${index}.label`,
-                  as: NInput,
+                h(NInput, {
                   placeholder: 'Введите метки через ;',
                   maxlength: 50,
-                  modelValue: row.label,
-                  'onUpdate:modelValue': (val) => (row.label = val)
+                  value: row.label,
+                  onUpdateValue: val => { setFieldValue(`accounts.${index}.label`, val); 
+                    
+                  }
                 }),
               feedback: () =>
                 h(ErrorMessage, {
@@ -92,19 +187,16 @@ const columns = [
         [
           h(
             NFormItem,
-            {  path: `accounts.${index}.type` },
+            { path: `accounts.${index}.type` },
             {
               default: () =>
-                h(Field, {
-                  name: `accounts.${index}.type`,
-                  as: NSelect,
+                h(NSelect, {
                   options: types,
-                  modelValue: row.type,
-                  'onUpdate:modelValue': (val) => {
-                    row.type = val
-                    // Если выбран LDAP, очищаем поле пароля
+                  value: row.type,
+                  onUpdateValue: val => {
+                    setFieldValue(`accounts.${index}.type`, val)
                     if (val === 'LDAP') {
-                      row.password = null
+                      setFieldValue(`accounts.${index}.password`, null)
                     }
                   }
                 }),
@@ -130,20 +222,22 @@ const columns = [
         [
           h(
             NFormItem,
-            {  path: `accounts.${index}.login` },
+            { path: `accounts.${index}.login` },
             {
               default: () =>
-                h(Field, {
-                  name: `accounts.${index}.login`,
-                  as: NInput,
+                h(NInput, {
                   placeholder: 'Логин',
                   maxlength: 100,
-                  modelValue: row.login,
-                  'onUpdate:modelValue': (val) => (row.login = val)
+                  value: row.login,
+                  onUpdateValue: val => {
+                    setFieldValue(`accounts.${index}.login`, val); 
+                    adError(errors.value)
+                    console.log(errorInputList.value)
+                  }
                 }),
               feedback: () =>
                 h(ErrorMessage, {
-                  name: `login`,
+                  name: `accounts.${index}.login`,
                   style: 'height: 12px; color: red; font-size: 12px;'
                 })
             }
@@ -157,7 +251,6 @@ const columns = [
     key: 'password',
     width: 200,
     render(row, index) {
-      // Показываем поле пароля только для локальных записей
       if (row.type !== 'Local') return h('span')
       return h(
         'div',
@@ -165,17 +258,15 @@ const columns = [
         [
           h(
             NFormItem,
-            {  path: `accounts.${index}.password` },
+            { path: `accounts.${index}.password` },
             {
               default: () =>
-                h(Field, {
-                  name: `accounts.${index}.password`,
-                  as: NInput,
+                h(NInput, {
                   type: 'password',
                   placeholder: 'Пароль',
                   maxlength: 100,
-                  modelValue: row.password,
-                  'onUpdate:modelValue': (val) => (row.password = val)
+                  value: row.password,
+                  onUpdateValue: val => setFieldValue(`accounts.${index}.password`, val)
                 }),
               feedback: () =>
                 h(ErrorMessage, {
@@ -199,82 +290,11 @@ const columns = [
           type: 'error',
           onClick: () => removeAccount(index, row.id)
         },
-        {
-          default: () =>
-            h(NIcon, null, { default: () => h(TrashBinOutline) })
-        }
+        { default: () => h(NIcon, null, { default: () => h(TrashBinOutline) }) }
       )
     }
   }
 ]
-
-
-
-const addAccount = () => {
-  store.value.addAccount();
-  setTimeout(() => {
-    const rows = dataTableRef.value?.$el.querySelectorAll('tbody tr');
-    if (rows && rows.length) {
-      $animate(
-        rows[rows.length - 1],
-        {
-          opacity: [0, 1],
-          transform: ['translateX(-30px)', 'translateX(0)'],
-        },
-        { duration: 0.3 }
-      );
-    }
-  }, 10);
-};
-
-const removeAccount = (index, id) => {
-  const rowToRemove = dataTableRef.value?.$el.querySelector(
-    `tbody tr:nth-of-type(${index + 1})`
-  );
-
-  if (!rowToRemove) {
-    store.value.removeAccount(index);
-    return;
-  }
-
-  $animate(
-    rowToRemove,
-    { opacity: [1, 0], transform: ['translateX(0)', 'translateX(-50%)'] },
-    { duration: 0.3 }
-  ).then(() => {
-    store.value.removeAccount(index);
-    $animate(
-      rowToRemove,
-      { opacity: [0, 1], transform: ['translateX(-50%)', 'translateX(0)'] },
-      { duration: 0 }
-    );
-  });
-};
-
-const animateRowsSequentially = () => {
-  const rows = dataTableRef.value?.$el.querySelectorAll('tbody tr');
-  if (rows) {
-    rows.forEach((row, index) => {
-      $animate(
-        row,
-        {
-          opacity: [0, 1],
-          transform: ['translateX(-30px)', 'translateY(0)'],
-        },
-        {
-          duration: 0.3,
-          delay: index * 0.2,
-        }
-      );
-    });
-  }
-};
-
-onMounted(async () => {
-  store.value = useAccountsStore();
-  await nextTick();
-  animateRowsSequentially();
-});
 </script>
 
 <template>
@@ -287,7 +307,6 @@ onMounted(async () => {
           </n-icon>
         </n-button>
       </template>
-
       <n-alert type="info" closable>
         <template #icon>
           <n-icon size="18">
@@ -296,22 +315,18 @@ onMounted(async () => {
         </template>
         Для указания нескольких меток для одной пары логин/пароль используйте разделитель ;
       </n-alert>
-
-      <Form :validation-schema="schema" v-slot="{ handleSubmit }">
-        <form @submit.prevent="handleSubmit(onSubmit)">
-
-      <n-data-table
-      class="h-full"
-      :max-height="600"
-      :scroll-x="1000"
-        ref="dataTableRef"
-        v-if="store?.accounts"
-        :columns="columns"
-        :data="store.accounts"
-        :bordered="true"
-         />
-        </form>
-      </Form>
+      <form @submit.prevent="onSubmit">
+        <n-data-table
+          class="h-full"
+          :max-height="600"
+          :scroll-x="1000"
+          ref="dataTableRef"
+          v-if="store?.accounts"
+          :columns="columns"
+          :data="values.accounts"
+          :bordered="true"
+        />
+      </form>
     </n-card>
   </div>
 </template>
@@ -331,18 +346,10 @@ onMounted(async () => {
   opacity: 0;
   transform: translateX(-30px);
 }
-
 :deep(.n-data-table-tbody tr) {
- padding: 2px 5px;
+  padding: 2px 5px;
 }
-
 :deep(.n-form-item.n-form-item--top-labelled) {
-    grid-template-rows: min-content;
-}
-.account {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 10px;
+  grid-template-rows: min-content;
 }
 </style>
