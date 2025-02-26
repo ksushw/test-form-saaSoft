@@ -8,16 +8,17 @@ interface Account {
   password: string;
 }
 
-export const useAccountsStore = defineStore('accounts', {
-  state: () => ({
-    accounts: useLocalStorage<Account[]>('accounts', []),
-  }),
-  actions: {
-    addAccount() {
-      this.accounts.push({ label: '', type: 'LDAP', login: '', password: '' });
-    },
-    removeAccount(index: number) {
-      this.accounts.splice(index, 1);
-    },
-  },
+export const useAccountsStore = defineStore('accounts', () => {
+  const accounts = useLocalStorage<Account[]>('accounts', []);
+
+  function addAccount() {
+    accounts.value.push({ label: '', type: 'LDAP', login: '', password: '' });
+  }
+
+  function removeAccount(index: number) {
+    accounts.value.splice(index, 1);
+  }
+
+  return { accounts, addAccount, removeAccount };
 });
+
