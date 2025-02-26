@@ -16,10 +16,9 @@ import {
 } from 'naive-ui'
 import { Add, HelpCircleOutline, TrashBinOutline } from '@vicons/ionicons5'
 
-// Получаем $animate из NuxtApp
 const { $animate } = useNuxtApp()
 const errorInputList = ref()
-// Возможные типы аккаунтов
+
 const types = [
   { label: 'LDAP', value: 'LDAP' },
   { label: 'Локальная', value: 'Local' }
@@ -32,7 +31,6 @@ const adError = (error) => {
   ])
 }
 
-// Схема валидации для одного аккаунта
 const accountSchema = yup.object({
   label: yup.string().max(50, 'Максимум 50 символов'),
   type: yup
@@ -51,7 +49,6 @@ const accountSchema = yup.object({
     })
 })
 
-// Общая схема для формы с массивом аккаунтов
 const validationSchema = yup.object({
   accounts: yup.array().of(accountSchema)
 })
@@ -72,9 +69,6 @@ onMounted(async () => {
   animateRowsSequentially()
 })
 
-
-
-// Функция анимации строк таблицы
 const animateRowsSequentially = () => {
   const rows = dataTableRef.value?.$el.querySelectorAll('tbody tr')
   if (rows) {
@@ -91,7 +85,6 @@ const animateRowsSequentially = () => {
   }
 }
 
-// Функция добавления аккаунта
 const addAccount = () => {
   store.value.addAccount()
   setValues({ accounts: store.value.accounts })
@@ -110,7 +103,6 @@ const addAccount = () => {
   }, 10)
 }
 
-// Функция удаления аккаунта с анимацией
 const removeAccount = (index, id) => {
   const rowToRemove = dataTableRef.value?.$el.querySelector(
     `tbody tr:nth-of-type(${index + 1})`
@@ -135,14 +127,10 @@ const removeAccount = (index, id) => {
   })
 }
 
-// Обработчик отправки формы
 const onSubmit = handleSubmit((formValues) => {
   console.log('Submitted values:', formValues)
 })
 
-// Определяем колонки для n-data-table с использованием render-функций.
-// Для каждого поля обновление значения происходит через onUpdateValue с вызовом setFieldValue,
-// а вывод ошибок организован через компонент <ErrorMessage>.
 const columns = [
   {
     title: 'Метка',
@@ -160,8 +148,8 @@ const columns = [
                 h(NInput, {
                   placeholder: 'Введите метки через ;',
                   maxlength: 50,
-                  value: row.label,
-                  onUpdateValue: val => { setFieldValue(`accounts.${index}.label`, val); 
+                  value: row.label.join(';'),
+                  onUpdateValue: val => { setFieldValue(`accounts.${index}.label`, val.split(';')); 
                     
                   }
                 }),
@@ -298,7 +286,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="container p-5 pt-10">
+  <div class="container p-7 pt-10">
     <n-card title="Учётные записи" class="h-full">
       <template #header-extra>
         <n-button strong primary circle @click="addAccount">
@@ -333,7 +321,7 @@ const columns = [
 
 <style scoped>
 .container {
-  max-width: 1600px;
+  max-width: 1500px;
   width: 100%;
   margin: auto;
   height: 100%;
