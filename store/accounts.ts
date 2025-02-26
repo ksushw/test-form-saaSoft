@@ -1,14 +1,6 @@
 import { defineStore } from 'pinia';
 import { useLocalStorage } from '@vueuse/core';
-
-
-
-interface Account {
-  label: string[];
-  type: string;
-  login: string;
-  password: string;
-}
+import type { Account } from '@/types/Account';
 
 export const useAccountsStore = defineStore('accounts', () => {
   const accounts = useLocalStorage<Account[]>('accounts', []);
