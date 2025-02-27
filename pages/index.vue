@@ -122,9 +122,8 @@
                     value: row.type,
                     onUpdateValue: (val) => {
                       setFieldValue(`accounts.${index}.type`, val);
-                      validateAccountOnBlur(index)
+                      validateAccountOnBlur(index);
                     },
-                   
                   }),
                 feedback: () =>
                   h(ErrorMessage, {
@@ -198,7 +197,7 @@
                     value: row.password,
                     onUpdateValue: (val) =>
                       setFieldValue(`accounts.${index}.password`, val),
-                      onBlur: () => validateAccountOnBlur(index),
+                    onBlur: () => validateAccountOnBlur(index),
                   }),
                 feedback: () =>
                   h(ErrorMessage, {
@@ -323,7 +322,7 @@
       </template>
       <n-alert type="info" closable>
         <template #icon>
-          <n-icon class="w-3xs h-3xs" >
+          <n-icon class="w-3xs h-3xs">
             <HelpCircleOutline class="w-3xs h-3xs" />
           </n-icon>
         </template>
@@ -333,7 +332,9 @@
       <form @submit.prevent="onSubmit">
         <n-data-table
           v-if="store?.accounts"
-          :height="800"
+          class="h-full"
+          :max-height="600"
+          :min-height="400"
           :scroll-x="1000"
           ref="dataTableRef"
           :columns="columns"
@@ -350,5 +351,20 @@
     width: 100%;
     margin: auto;
     height: 100%;
+  }
+
+  :deep(.n-data-table-tr:first-of-type) {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  :deep(.n-data-table-tr) {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  :deep(.n-data-table-tbody tr) {
+    padding: 2px 5px;
+  }
+  :deep(.n-form-item.n-form-item--top-labelled) {
+    grid-template-rows: min-content;
   }
 </style>
