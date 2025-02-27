@@ -19,6 +19,7 @@
   import * as yup from 'yup';
 
   import type { Account } from '@/types/Account';
+  import LoadingPage from '~/components/LoadingPage.vue';
 
   const store = ref();
   const dataTableRef = ref<InstanceType<typeof NDataTable> | null>(null);
@@ -72,7 +73,7 @@
 
   const columns = [
     {
-      title: 'Метка',
+      title: 'Метка(необязательно)',
       key: 'label',
       render(row: Account, index: number) {
         return h(
@@ -102,7 +103,7 @@
       },
     },
     {
-      title: 'Тип',
+      title: 'Тип*',
       key: 'type',
       width: 200,
       render(row: Account, index: number) {
@@ -138,7 +139,7 @@
       },
     },
     {
-      title: 'Логин',
+      title: 'Логин*',
       key: 'login',
       width: 200,
       render(row: Account, index: number) {
@@ -174,7 +175,7 @@
       },
     },
     {
-      title: 'Пароль',
+      title: 'Пароль (локально)*',
       key: 'password',
       width: 200,
       render(row: Account, index: number) {
@@ -311,7 +312,8 @@
 </script>
 
 <template>
-  <div class="container p-7 pt-10">
+  <LoadingPage v-if="!store?.accounts" />
+  <div v-else class="container p-7 pt-10">
     <n-card title="Учётные записи" class="h-full">
       <template #header-extra>
         <n-button strong primary circle @click="addAccount">
@@ -331,7 +333,6 @@
       </n-alert>
       <form @submit.prevent="onSubmit">
         <n-data-table
-          v-if="store?.accounts"
           class="h-full"
           :max-height="600"
           :min-height="400"

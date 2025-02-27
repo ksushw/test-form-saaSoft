@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { NConfigProvider } from 'naive-ui';
   import { themeOverrides } from './theme/BlueTheme';
+  import UnsavedDataLost from '@/components/UnsavedDataLost.vue';
 </script>
 
 <template>
@@ -11,6 +12,7 @@
       <div id="stars3"></div>
     </div>
     <div class="app-container">
+      <UnsavedDataLost />
       <NuxtPage />
     </div>
   </n-config-provider>
