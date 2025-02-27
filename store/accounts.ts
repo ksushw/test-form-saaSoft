@@ -1,18 +1,34 @@
 import { defineStore } from 'pinia';
 import { useLocalStorage } from '@vueuse/core';
+import { computed, watch, ref } from 'vue';
 import type { Account } from '@/types/Account';
 
+export interface AccountsStore {
+  accounts: Account[];
+  filteredAccounts: Account[];
+  addAccount: () => void;
+  removeAccount: (index: number) => void;
+}
+
 export const useAccountsStore = defineStore('accounts', () => {
-  const accounts = useLocalStorage<Account[]>('accounts', []);
+  const storage = useLocalStorage<Account[]>('accounts', []);
+  const accounts = ref<Account[]>(storage.value || []);
+  
+  // Отфильтрованные аккаунты (только с valid: true)
+  const filteredAccounts = computed(() => accounts.value.filter(account => account.valid));
 
   function addAccount() {
-    accounts.value.push({ label: [], type: 'LDAP', login: '', password: '' });
+    accounts.value.push({ label: [], type: 'LDAP', login: '', password: '', valid: false });
   }
 
   function removeAccount(index: number) {
     accounts.value.splice(index, 1);
   }
 
-  return { accounts, addAccount, removeAccount };
-});
+  // Следим за отфильтрованными аккаунтами и обновляем localStorage
+  watch(filteredAccounts, (newFiltered) => {
+    storage.value = newFiltered;
+  }, { deep: true });
 
+  return { accounts, filteredAccounts, addAccount, removeAccount };
+});

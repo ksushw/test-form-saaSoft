@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref, onMounted, nextTick, h } from 'vue';
-  import { useNuxtApp } from '#imports'
-import { useAccountsStore } from '@/store/accounts';
-  
+  import { useNuxtApp } from '#imports';
+  import { useAccountsStore } from '@/store/accounts';
+
   import {
     NButton,
     NCard,
@@ -16,18 +16,20 @@ import { useAccountsStore } from '@/store/accounts';
   import { Add, HelpCircleOutline, TrashBinOutline } from '@vicons/ionicons5';
 
   import { useForm, ErrorMessage } from 'vee-validate';
-import * as yup from 'yup';
-  
-import type { Account } from '@/types/Account';
+  import * as yup from 'yup';
 
-  // const accountsList = ref()
-  const errorInputList = ref();
+  import type { Account } from '@/types/Account';
+
   const store = ref();
   const dataTableRef = ref<InstanceType<typeof NDataTable> | null>(null);
 
   const { $animate } = useNuxtApp() as unknown as {
-  $animate: (el: Element, keyframes: { opacity?: number[], transform?: string[] }, options?: { duration?: number, delay?: number }) => Promise<void>
-}
+    $animate: (
+      el: Element,
+      keyframes: { opacity?: number[]; transform?: string[] },
+      options?: { duration?: number; delay?: number }
+    ) => Promise<void>;
+  };
 
   const accountSchema = yup.object({
     label: yup.string().max(50, 'Максимум 50 символов'),
@@ -56,7 +58,9 @@ import type { Account } from '@/types/Account';
     accounts: yup.array().of(accountSchema),
   });
 
-  const { values, handleSubmit, setValues, setFieldValue } = useForm<{accounts: Account[]}>({
+  const { values, handleSubmit, setValues, setFieldValue } = useForm<{
+    accounts: Account[];
+  }>({
     validationSchema,
     initialValues: { accounts: [] },
   });
@@ -89,12 +93,7 @@ import type { Account } from '@/types/Account';
                     onUpdateValue: (val) => {
                       setFieldValue(`accounts.${index}.label`, val.split(';'));
                     },
-                  }),
-                feedback: () =>
-                  h(ErrorMessage, {
-                    name: `accounts.${index}.label`,
-                    style:
-                      'height: 12px; margin-top: -2px; color: red; font-size: 12px;',
+                    onBlur: () => validateAccountOnBlur(index),
                   }),
               }
             ),
@@ -122,11 +121,9 @@ import type { Account } from '@/types/Account';
                     options: typesAccount,
                     value: row.type,
                     onUpdateValue: (val) => {
-                      setFieldValue(`accounts.${index}.login`, val);
-                      if (val === 'LDAP') {
-                        setFieldValue(`accounts.${index}.login`, '');
-                      }
+                      setFieldValue(`accounts.${index}.type`, val);
                     },
+                    onBlur: () => validateAccountOnBlur(index),
                   }),
                 feedback: () =>
                   h(ErrorMessage, {
@@ -162,8 +159,8 @@ import type { Account } from '@/types/Account';
                     value: row.login,
                     onUpdateValue: (val) => {
                       setFieldValue(`accounts.${index}.login`, val);
-                      errorInputList.value(errorInputList?.value);
                     },
+                    onBlur: () => validateAccountOnBlur(index),
                   }),
                 feedback: () =>
                   h(ErrorMessage, {
@@ -200,6 +197,7 @@ import type { Account } from '@/types/Account';
                     value: row.password,
                     onUpdateValue: (val) =>
                       setFieldValue(`accounts.${index}.password`, val),
+                      onBlur: () => validateAccountOnBlur(index),
                   }),
                 feedback: () =>
                   h(ErrorMessage, {
@@ -234,7 +232,8 @@ import type { Account } from '@/types/Account';
   ];
 
   const animateRowsSequentially = () => {
-    const rows: NodeListOf<HTMLTableRowElement> = dataTableRef.value?.$el.querySelectorAll('tbody tr');
+    const rows: NodeListOf<HTMLTableRowElement> =
+      dataTableRef.value?.$el.querySelectorAll('tbody tr');
     if (rows) {
       rows.forEach((row, index) => {
         $animate(
@@ -291,6 +290,14 @@ import type { Account } from '@/types/Account';
     });
   };
 
+  const validateAccountOnBlur = (index: number) => {
+    const account = store.value.accounts[index];
+    if (account) {
+      account.valid =
+        !!account.login && (account.type !== 'Local' || !!account.password);
+    }
+  };
+
   const onSubmit = handleSubmit((formValues) => {
     console.log('Submitted values:', formValues);
   });
@@ -325,8 +332,8 @@ import type { Account } from '@/types/Account';
       <form @submit.prevent="onSubmit">
         <n-data-table
           v-if="store?.accounts"
-          class="h-full"
-          :max-height="800"
+          class="h-75"
+          :height="800"
           :scroll-x="1000"
           ref="dataTableRef"
           :columns="columns"

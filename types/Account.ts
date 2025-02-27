@@ -3,4 +3,6 @@ export interface Account {
     type: string;
     login: string;
     password: string;
+    valid: boolean
 }
+
