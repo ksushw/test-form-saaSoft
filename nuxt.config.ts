@@ -2,6 +2,12 @@
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
+  app: {
+    baseURL: process.env.NODE_ENV === 'production' ? '/test-form-saaSoft/' : '/', 
+  },
+  nitro: {
+    preset: 'static', 
+  },
   css: ["@/assets/css/globals.css"],
   postcss: {
     plugins: {
