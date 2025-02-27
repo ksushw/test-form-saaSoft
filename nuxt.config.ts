@@ -3,10 +3,12 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   app: {
-    baseURL: process.env.NODE_ENV === 'production' ? '/test-form-saaSoft/' : '/', 
+    baseURL: '/test-form-saaSoft/' // ⚠️ Указываем имя репозитория!
   },
   nitro: {
-    preset: 'static', 
+    prerender: {
+      routes: ['/'] // Страницы для предрендера
+    }
   },
   css: ["@/assets/css/globals.css"],
   postcss: {
