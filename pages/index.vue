@@ -333,7 +333,6 @@
       <form @submit.prevent="onSubmit">
         <n-data-table
           v-if="store?.accounts"
-          class="h-75"
           :height="800"
           :scroll-x="1000"
           ref="dataTableRef"
