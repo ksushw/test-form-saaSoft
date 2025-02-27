@@ -122,8 +122,9 @@
                     value: row.type,
                     onUpdateValue: (val) => {
                       setFieldValue(`accounts.${index}.type`, val);
+                      validateAccountOnBlur(index)
                     },
-                    onBlur: () => validateAccountOnBlur(index),
+                   
                   }),
                 feedback: () =>
                   h(ErrorMessage, {
@@ -322,8 +323,8 @@
       </template>
       <n-alert type="info" closable>
         <template #icon>
-          <n-icon size="18">
-            <HelpCircleOutline />
+          <n-icon class="w-3xs h-3xs" >
+            <HelpCircleOutline class="w-3xs h-3xs" />
           </n-icon>
         </template>
         Для указания нескольких меток для одной пары логин/пароль используйте
