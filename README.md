@@ -29,12 +29,12 @@
 
 ### 1️⃣ Установить зависимости
 ```sh
-npm install  # или yarn install
+npm install
 ```
 
 ### 2️⃣ Запустить локальный сервер
 ```sh
-npm run dev  # или yarn dev
+npm run dev
 ```
 
 ### 3️⃣ Открыть в браузере
