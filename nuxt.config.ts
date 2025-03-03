@@ -2,8 +2,10 @@
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
+  ssr: true,
   app: {
-    baseURL: '/test-form-saaSoft/' 
+    baseURL: '/test-form-saaSoft/',
+    trailingSlash: true,
   },
   nitro: {
     prerender: {
@@ -27,7 +29,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   modules: ['@pinia/nuxt'],
-  ssr: true,
   build: {
     transpile: ['naive-ui', 'vueuc']
   },

@@ -24,6 +24,8 @@
   const store = ref();
   const dataTableRef = ref<InstanceType<typeof NDataTable> | null>(null);
 
+  store.value = useAccountsStore();
+
   const { $animate } = useNuxtApp() as unknown as {
     $animate: (
       el: Element,
@@ -304,7 +306,6 @@
   });
 
   onMounted(async () => {
-    store.value = useAccountsStore();
     setValues({ accounts: store.value.accounts });
     await nextTick();
     animateRowsSequentially();
@@ -312,8 +313,8 @@
 </script>
 
 <template>
-  <LoadingPage v-if="!store?.accounts" />
-  <div v-else class="container p-7 pt-10">
+  <LoadingPage v-if="store?.isLoading" />
+  <div v-if="!store?.isLoading" class="container p-7 pt-10">
     <n-card title="Учётные записи" class="h-full">
       <template #header-extra>
         <n-button strong primary circle @click="addAccount">

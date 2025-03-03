@@ -8,11 +8,13 @@ export interface AccountsStore {
   filteredAccounts: Account[];
   addAccount: () => void;
   removeAccount: (index: number) => void;
+  isLoading: boolean;
 }
 
 export const useAccountsStore = defineStore('accounts', () => {
   const storage = useLocalStorage<Account[]>('accounts', []);
   const accounts = ref<Account[]>(storage.value || []);
+  const isLoading = ref<boolean>(true);
   
   // Отфильтрованные аккаунты (только с valid: true)
   const filteredAccounts = computed(() => accounts.value.filter(account => account.valid));
@@ -28,7 +30,8 @@ export const useAccountsStore = defineStore('accounts', () => {
   // Следим за отфильтрованными аккаунтами и обновляем localStorage
   watch(filteredAccounts, (newFiltered) => {
     storage.value = newFiltered;
+    isLoading.value = false;
   }, { deep: true });
 
-  return { accounts, filteredAccounts, addAccount, removeAccount };
+  return { accounts, filteredAccounts, addAccount, removeAccount, isLoading };
 });
