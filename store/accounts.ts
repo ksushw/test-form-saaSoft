@@ -16,7 +16,6 @@ export const useAccountsStore = defineStore('accounts', () => {
   const accounts = ref<Account[]>(storage.value || []);
   const isLoading = ref<boolean>(true);
   
-  // Отфильтрованные аккаунты (только с valid: true)
   const filteredAccounts = computed(() => accounts.value.filter(account => account.valid));
 
   function addAccount() {
